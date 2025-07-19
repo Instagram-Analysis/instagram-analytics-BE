@@ -16,6 +16,8 @@ declare module "express-session" {
     igPassword?: string;
 
     twoFactorIdentifier?: string;
+
+    challengeUrl?: string;
   }
 }
 
