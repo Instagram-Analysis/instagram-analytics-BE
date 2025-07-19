@@ -46,14 +46,14 @@ Node.js + TypeScript backend exposing four endpoints:
 
 ## Project Layout
 
-\`\`\`
+```
 src/
-├── controllers/ Route handlers  
- ├── routes/ Express endpoints  
- ├── services/ Instagram API logic  
- ├── utils/ Helpers (error handling)  
- └── index.ts App entry point  
-\`\`\`
+├── controllers/ Route handlers
+├── routes/ Express endpoints
+├── services/ Instagram API logic
+├── utils/ Helpers (error handling)
+└── index.ts App entry point
+```
 
 ## Next Steps
 
