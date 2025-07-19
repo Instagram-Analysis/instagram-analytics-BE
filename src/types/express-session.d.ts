@@ -14,6 +14,8 @@ declare module "express-session" {
     igUsername?: string;
     /** Instagram password (or token) stored in session */
     igPassword?: string;
+
+    twoFactorIdentifier?: string;
   }
 }
 
