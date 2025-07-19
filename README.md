@@ -1,21 +1,17 @@
-# Instagram Analytics Backend
+# Instagram Analytics — Backend
 
-Node.js + TypeScript backend exposing four endpoints:
+This is the **Express.js + TypeScript** backend for the Instagram Analytics dashboard.  
+It exposes REST endpoints for:
 
-- `GET /api/followers` — users who follow you
-- `GET /api/following` — users you follow
-- `GET /api/non-followers` — those you follow who don’t follow back
-- `GET /api/top-likers` — users who like your posts most
-
-## Prerequisites
-
-- Node.js v14+
-- npm
-- A long-lived Instagram Graph API token for testing
+- Logging in via Instagram credentials
+- Fetching followers (`/api/followers`)
+- Fetching following (`/api/following`)
+- Identifying non-followers (`/api/non-followers`)
+- Aggregating top likers (`/api/top-likers`)
 
 ## Setup
 
-1. **Clone & install**
+1. Clone this repo and install dependencies:
 
    ```bash
    git clone git@github.com:Instagram-Analysis/instagram-analytics-BE.git
@@ -23,43 +19,43 @@ Node.js + TypeScript backend exposing four endpoints:
    npm install
    ```
 
-2. **Configure environment**  
-   Create `.env` in the root:
+2. Create a `.env` file in the project root with:
 
-   ```env
+   ```dotenv
    PORT=4000
    FRONTEND_URL=http://localhost:3000
-   INSTAGRAM_ACCESS_TOKEN=<your-test-token>
+   SESSION_SECRET=your-session-secret
+   # For future Graph API use:
+   INSTAGRAM_GRAPH_TOKEN=your-long-lived-token
    ```
 
-3. **Run**
+3. Run in development:
    ```bash
    npm run dev
    ```
-   Server will start on [http://localhost:4000](http://localhost:4000).
+   The server listens on [http://localhost:4000](http://localhost:4000).
 
 ## Available Scripts
 
-- `npm run dev` – start with hot-reload
-- `npm run build` – compile to `dist/`
-- `npm run start` – run compiled code
+- `npm run dev` — start with `ts-node-dev` and hot-reload
+- `npm run build` — compile TypeScript to `dist/`
+- `npm start` — run the compiled code
 
-## Project Layout
+## Instagram API Integration
 
-```
-src/
-├── controllers/ Route handlers
-├── routes/ Express endpoints
-├── services/ Instagram API logic
-├── utils/ Helpers (error handling)
-└── index.ts App entry point
-```
+> **Historical note:** We initially used the unofficial [`instagram-private-api`](https://github.com/dilame/instagram-private-api) to log in with raw credentials, but ran into persistent two-factor and checkpoint challenges that were difficult to automate.
+>
+> **Current direction:** Migrating to the **official Instagram Graph API**. In the upcoming version:
+>
+> 1. Users will authenticate via OAuth (no raw passwords or 2FA handling in our code).
+> 2. We’ll exchange the OAuth code for a long‐lived access token.
+> 3. Followers, following, and media metrics will be fetched via:
+>    - `GET https://graph.instagram.com/me/followers?access_token=…`
+>    - `GET https://graph.instagram.com/me/following?access_token=…`
+>    - `GET https://graph.instagram.com/me/media?fields=id,like_count&access_token=…`
 
-## Next Steps
+Until the migration is complete, the existing private-API login (with 2FA challenge) remains active. Expect an update soon!
 
-1. Verify stubs:
-   ```bash
-   curl http://localhost:4000/api/followers
-   ```
-2. Replace stubs in `services/instagram.service.ts` with real Graph API calls.
-3. Implement OAuth flow for dynamic tokens.
+## License
+
+MIT
