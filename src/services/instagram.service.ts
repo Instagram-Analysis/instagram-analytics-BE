@@ -1,7 +1,7 @@
 // backend/src/services/instagram.service.ts
 
 import { IgApiClient } from "instagram-private-api";
-import { Follower, Liker } from "../../types/instagram";
+import { Follower, Liker } from "../types/instagram";
 
 /**
  * Log in with the given credentials and return an authenticated client.

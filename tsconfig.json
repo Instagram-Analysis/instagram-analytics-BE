@@ -6,7 +6,23 @@
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    // Look in both the normal @types and your src/types folder
+    "typeRoots": [
+      "node_modules/@types",
+      "src/types"
+    ],
+    // Explicitly load these modules
+    "types": [
+      "node",
+      "express",
+      "express-session"
+    ]
   },
-  "include": ["src"]
+  // Include both your source code and the types directory
+  "include": [
+    "src/**/*",
+    "src/types/**/*"
+  ]
 }
