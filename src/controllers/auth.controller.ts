@@ -15,10 +15,10 @@ export function oauthRedirect(req: Request, res: Response) {
   console.log("APP ID:", process.env.INSTAGRAM_APP_ID);
   console.log("REDIRECT URI:", process.env.INSTAGRAM_REDIRECT_URI);
   const authUrl =
-    `https://api.instagram.com/oauth/authorize` +
+    `https://www.facebook.com/v16.0/dialog/oauth` +
     `?client_id=${INSTAGRAM_APP_ID}` +
     `&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}` +
-    `&scope=${INSTAGRAM_SCOPES}` +
+    `&scope=instagram_graph_user_profile,instagram_graph_user_media` +
     `&response_type=code`;
   return res.redirect(authUrl);
 }
