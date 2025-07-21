@@ -1,10 +1,48 @@
-// backend/src/controllers/auth.controller.ts
-
 import { Request, Response } from "express";
 import {
   IgApiClient,
   IgLoginTwoFactorRequiredError,
 } from "instagram-private-api";
+
+const INSTAGRAM_APP_ID = process.env.INSTAGRAM_APP_ID!;
+const INSTAGRAM_REDIRECT_URI = process.env.INSTAGRAM_REDIRECT_URI!; // e.g. http://localhost:4000/api/auth/callback
+const INSTAGRAM_SCOPES = ["user_profile", "user_media"].join(",");
+
+/**
+ * Redirects the user to Instagram's OAuth authorization page.
+ */
+export function oauthRedirect(req: Request, res: Response) {
+  console.log("APP ID:", process.env.INSTAGRAM_APP_ID);
+  console.log("REDIRECT URI:", process.env.INSTAGRAM_REDIRECT_URI);
+  const authUrl =
+    `https://api.instagram.com/oauth/authorize` +
+    `?client_id=${INSTAGRAM_APP_ID}` +
+    `&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}` +
+    `&scope=${INSTAGRAM_SCOPES}` +
+    `&response_type=code`;
+  return res.redirect(authUrl);
+}
+
+/**
+ * Handles the OAuth callback from Instagram:
+ * 1) Receives `code` query param
+ * 2) (TODO) Exchange it for an access token
+ * 3) Store token in session/db
+ * 4) Redirect to frontend dashboard
+ */
+export async function oauthCallback(req: Request, res: Response) {
+  const { code, error } = req.query;
+  if (error || !code) {
+    return res.status(400).send("Authentication failed");
+  }
+
+  // TODO: exchange `code` for a Graph API token, e.g.:
+  // const tokenRes = await fetch(`https://api.instagram.com/oauth/access_token`, { ... })
+  // const { access_token } = await tokenRes.json();
+  // req.session!.accessToken = access_token;
+
+  return res.redirect("http://localhost:3000/followers");
+}
 
 /**
  * Initialize a new Instagram client with device state.
@@ -16,10 +54,7 @@ async function getInstagramClient(username: string): Promise<IgApiClient> {
 }
 
 /**
- * POST /api/auth/login
- *  - Attempts a normal login (with pre/post flows)
- *  - If 2FA is required, responds { twoFactorRequired, twoFactorMethod, twoFactorIdentifier }
- *  - If checkpoint (challenge) is required, responds { challengeRequired, challengeUrl }
+ * Legacy: login via instagram-private-api (will be removed)
  */
 export async function login(req: Request, res: Response) {
   const { username, password } = req.body;
@@ -30,19 +65,16 @@ export async function login(req: Request, res: Response) {
   const ig = await getInstagramClient(username);
 
   try {
-    // Mimic official app behavior
     await ig.simulate.preLoginFlow();
     await ig.account.login(username, password);
     await ig.simulate.postLoginFlow();
 
-    // Success! Store credentials in session
     req.session!.igUsername = username;
     req.session!.igPassword = password;
     return res.json({ ok: true });
   } catch (err: any) {
     const body = err.response?.body || {};
 
-    // --- 2FA required? ---
     if (err instanceof IgLoginTwoFactorRequiredError || body.two_factor_info) {
       const info = (body.two_factor_info || {}) as any;
       req.session!.twoFactorIdentifier = info.two_factor_identifier;
@@ -53,10 +85,8 @@ export async function login(req: Request, res: Response) {
       });
     }
 
-    // --- Checkpoint/Challenge required? ---
     if (body.challenge && body.challenge.url) {
       let url = body.challenge.url as string;
-      // If it’s not already absolute, prefix it
       if (!/^https?:\/\//i.test(url)) {
         url = `https://www.instagram.com${url}`;
       }
@@ -66,15 +96,13 @@ export async function login(req: Request, res: Response) {
       });
     }
 
-    // Fallback
     console.error("Instagram login error:", err.message, body);
     return res.status(401).json({ error: "Invalid Instagram credentials" });
   }
 }
 
 /**
- * POST /api/auth/two-factor
- * Completes the 2FA step when Instagram has sent a code.
+ * Legacy: complete two-factor login
  */
 export async function twoFactor(req: Request, res: Response) {
   const {
@@ -99,7 +127,6 @@ export async function twoFactor(req: Request, res: Response) {
     });
     await ig.simulate.postLoginFlow();
 
-    // Clear 2FA state, mark as authenticated
     delete req.session!.twoFactorIdentifier;
     req.session!.igUsername = username;
     req.session!.igPassword = password;
@@ -111,8 +138,7 @@ export async function twoFactor(req: Request, res: Response) {
 }
 
 /**
- * POST /api/auth/logout
- * Destroys the session.
+ * Logs the user out by destroying their session.
  */
 export function logout(req: Request, res: Response) {
   req.session!.destroy((err) => {

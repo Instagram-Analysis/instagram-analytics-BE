@@ -1,13 +1,12 @@
 // backend/src/index.ts
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import session from "express-session";
-import dotenv from "dotenv";
-
 import authRoutes from "./routes/auth.routes";
 import instagramRoutes from "./routes/instagram.routes";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
